@@ -1,1 +1,43 @@
-hiiii,its karan
+1. Requirements and Goals of the System:-->
+
+Global and fast code deployment system.
+The system take the code. Builds the code into a binary and deploys the code globally in an efficient way.
+The system be able to scale and deploy code to application servers all around the world.
+Additionally we want to store the historical data of all the builds and the deployments.
+
+2.Capacity Estimation and Constraints:-->
+For the purpose of this problem we are assuming only 5–10 regions globally.
+Each region can have upto 100K machines.
+Even tough it is an internal deployment system but the system should be 
+HIGHLY available (~99%). This is because generally a faulty 
+deployment is followed by a rollback or roll-forward deployment 
+hence availability matters.
+
+3. High Level System Design:-->
+
+1.Building:-->
+    The building the code commits in FIFO (First In First Out)manner.
+    Workers will then store the binary in blob store.
+    We can think of a SQL table for storing the job entries (this can represent our queue).
+    How to work this as a queue ?
+    We can select the jobs where status = QUEUED 
+    and has the oldest created_at timestamp.
+    The fact that we have SQL database, we have ACID transactions.
+    A-Atomicity
+    C-Consistency
+    I-Isolation
+    D-Durability
+
+2.Deploying:-->
+We assumed earlier that the build takes 15 mins and let’s say replication takes 
+another 5 mins. So for us to meet the 30 min deadline for entire deployment, 
+we are left with 10 mins. For 100K machines to download a 10 GB file from the 
+blob store over network seems unreasonable. Hence we can create a Peer-to-Peer network.
+All the machines in a region are part of a Peer to Peer network, this will enable 
+them to download multiple such binaries really fast.We assumed earlier that the 
+build takes 15 mins and let’s say replication takes another 5 mins. So for us 
+to meet the 30 min deadline for entire deployment, we are left with 10 mins. 
+For 100K machines to download a 10 GB file from the blob store over network seems 
+unreasonable. Hence we can create a Peer-to-Peer network. All the machines in a 
+region are part of a Peer to Peer network, this will enable them to download multiple 
+such binaries really fast.   
